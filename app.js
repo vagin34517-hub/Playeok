@@ -69,6 +69,8 @@ const api = {
   deals(){return this.call('/api/deals')},
   createDeal(b){return this.call('/api/deals',{method:'POST',body:b})},
   cancelDeal(id){return this.call('/api/deals/'+encodeURIComponent(id)+'/cancel',{method:'POST'})},
+  getDeal(id){return this.call('/api/deals/'+encodeURIComponent(id))},
+  joinDeal(id){return this.call('/api/deals/'+encodeURIComponent(id)+'/join',{method:'POST'})},
   setCard(b){return this.call('/api/wallet/card',{method:'POST',body:b})},
   withdraw(b){return this.call('/api/wallet/withdraw',{method:'POST',body:b})},
   admUsers(){return this.call('/api/admin/users')},
@@ -343,8 +345,47 @@ function prompt2(t,p,v,ok){const mb=$('#modal-back');if(!mb)return;$('#modal-tit
 const mback=$('#modal-back');mback&&mback.addEventListener('click',e=>{if(e.target===mback)mback.classList.remove('show')});
 
 /* ---- Deep link ---- */
-function handleDeepLink(){let id='';const qs=new URLSearchParams(location.search);id=qs.get('deal')||'';if(!id&&tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param){const sp=String(tg.initDataUnsafe.start_param);if(sp.startsWith('deal_'))id=sp.slice(5)}if(id){setTimeout(()=>{const d=state.deals.find(x=>x.id===id);if(d){switchTab('deals');openDeal(d.id)}else{switchTab('deals');toast('Сделка #'+id+' не найдена')}},400)}}
+async function handleDeepLink(){
+  let id="";
+  const qs=new URLSearchParams(location.search);
+  id=qs.get("deal")||"";
+  if(!id&&tg&&tg.initDataUnsafe&&tg.initDataUnsafe.start_param){
+    const sp=String(tg.initDataUnsafe.start_param);
+    if(sp.startsWith("deal_")) id=sp.slice(5);
+    else if(sp.startsWith("deal-")) id=sp.slice(5);
+    else if(sp.toUpperCase().startsWith("PLR-")) id=sp;
+  }
+  if(!id) return;
+  switchTab("deals");
+  let d=state.deals.find(x=>x.id===id);
+  if(!d && API_BASE){
+    try{
+      const j=await api.getDeal(id);
+      d=j.deal;
+      if(d && !state.deals.find(x=>x.id===d.id)){state.deals.unshift(d);save();renderDeals();}
+    }catch(e){toast("Сделка #"+id+" не найдена");return;}
+  }
+  if(!d){toast("Сделка #"+id+" не найдена");return;}
+  openDeal(d.id);
+  // offer to join if current user is not seller and there is no buyer yet
+  try{
+    const me=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user)||{};
+    if(d.seller_id && me.id && d.seller_id!==me.id && !d.buyer_id){
+      setTimeout(()=>{
+        if(confirm("Присоединиться к сделке #"+d.id+" как покупатель?")){
+          api.joinDeal(d.id).then(j=>{
+            const nd=j.deal; if(nd){
+              const i=state.deals.findIndex(x=>x.id===nd.id);
+              if(i>=0)state.deals[i]=nd; else state.deals.unshift(nd);
+              save();renderDeals();openDeal(nd.id);toast("Вы присоединились к сделке");
+            }
+          }).catch(e=>toast("Ошибка: "+(e.message||e)));
+        }
+      },300);
+    }
+  }catch(e){}
+}
 
 /* ---- Init ---- */
 applyTheme();renderUser();renderDeals();renderWallets();renderProfile();
-(async()=>{await loadMe();renderUser();renderDeals();renderWallets();renderProfile();handleDeepLink();setInterval(()=>loadMe().then(()=>{renderUser();renderProfile();renderWallets()}),20000)})();
+(async()=>{await loadMe();renderUser();renderDeals();renderWallets();renderProfile();await handleDeepLink();setInterval(()=>loadMe().then(()=>{renderUser();renderProfile();renderWallets()}),20000)})();
