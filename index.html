@@ -3,299 +3,277 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Playerok</title>
+<title>Playerok — Гарант-сервис</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body data-theme="light">
 
-<!-- ================= СДЕЛКИ (главная) ================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a84ff"/><stop offset=".55" stop-color="#5b3fff"/><stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="g-sol" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9945ff"/><stop offset="1" stop-color="#14f195"/></linearGradient>
+    <linearGradient id="g-star" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc83a"/><stop offset="1" stop-color="#ff8a00"/></linearGradient>
+
+    <symbol id="i-logo" viewBox="0 0 44 44">
+      <rect width="44" height="44" rx="13" fill="url(#g-brand)"/>
+      <path d="M13 11 h12 a7 7 0 0 1 0 14 h-6 v8 h-6 z M19 17 v4 h5 a2 2 0 0 0 0-4 z" fill="#fff"/>
+      <circle cx="33" cy="13" r="3.5" fill="#fff" opacity=".95"/>
+      <circle cx="33" cy="13" r="1.5" fill="url(#g-brand)"/>
+    </symbol>
+
+    <symbol id="c-TON" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#0098ea"/><path d="M11 13 h18 l-9 15 z M14 15 h12 l-6 10 z" fill="#fff"/></symbol>
+    <symbol id="c-STARS" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="url(#g-star)"/><path d="M20 9 l3 7 7.5.6 -5.7 5 1.7 7.4 -6.5-4 -6.5 4 1.7-7.4 -5.7-5 7.5-.6 z" fill="#fff"/></symbol>
+    <symbol id="c-USDT" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#26a17b"/><path d="M12 12 h16 v4 h-6 v3.1 c3.2.3 5.4.9 5.4 1.7 0 1-2.8 1.7-6.4 1.7-3.6 0-6.4-.7-6.4-1.7 0-.8 2.2-1.4 5.4-1.7V16 h-6 z M16.6 20.7c0 .6 1.5 1 3.4 1s3.4-.4 3.4-1v3.7c0 .6-1.5 1-3.4 1s-3.4-.4-3.4-1z" fill="#fff"/></symbol>
+    <symbol id="c-BTC" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#f7931a"/><text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="system-ui">₿</text></symbol>
+    <symbol id="c-ETH" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#627eea"/><path d="M20 7 v10 l7.5 3.4 z M20 7 l-7.5 13.4 7.5-3.4 z M20 23 l7.5-3.4 -7.5 12.4 z M20 23 v9 l-7.5-12.4 z" fill="#fff"/></symbol>
+    <symbol id="c-BNB" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#f3ba2f"/><path d="M20 11 l3.2 3.2-3.2 3.2-3.2-3.2z M13.8 17.2 l3.2 3.2-3.2 3.2-3.2-3.2z M26.2 17.2 l3.2 3.2-3.2 3.2-3.2-3.2z M20 23.4 l3.2 3.2-3.2 3.2-3.2-3.2z M20 17.4 l3 3-3 3-3-3z" fill="#fff"/></symbol>
+    <symbol id="c-SOL" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="url(#g-sol)"/><path d="M12 14 h13 l3 3 h-13 z M12 21.5 h13 l-3-3 h-13 z M12 26 h13 l3-3 h-13 z" fill="#fff"/></symbol>
+    <symbol id="c-TRX" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#ef0027"/><path d="M11 11 l19 4.5 -10 14.5 z" fill="#fff"/></symbol>
+    <symbol id="c-NOT" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#111"/><text x="20" y="26" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="system-ui">NOT</text></symbol>
+    <symbol id="c-DOGE" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#c2a633"/><text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="system-ui">Ð</text></symbol>
+
+    <symbol id="f-RUB" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#fff"/><rect y="13.3" width="40" height="13.4" fill="#0039a6"/><rect y="26.7" width="40" height="13.3" fill="#d52b1e"/><text x="20" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="system-ui">₽</text></symbol>
+    <symbol id="f-USD" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#1c8a3a"/><text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="system-ui">$</text></symbol>
+    <symbol id="f-EUR" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#003399"/><text x="20" y="28" text-anchor="middle" font-size="22" font-weight="800" fill="#ffcc00" font-family="system-ui">€</text></symbol>
+    <symbol id="f-UAH" viewBox="0 0 40 40"><rect width="40" height="20" fill="#0057b7"/><rect y="20" width="40" height="20" fill="#ffd700"/><text x="20" y="26" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1c1c" font-family="system-ui">₴</text></symbol>
+    <symbol id="f-KZT" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#00afca"/><text x="20" y="28" text-anchor="middle" font-size="20" font-weight="800" fill="#fec50c" font-family="system-ui">₸</text></symbol>
+    <symbol id="f-BYN" viewBox="0 0 40 40"><rect width="40" height="27" fill="#c8313e"/><rect y="27" width="40" height="13" fill="#4aa657"/><text x="20" y="23" text-anchor="middle" font-size="14" font-weight="800" fill="#fff" font-family="system-ui">Br</text></symbol>
+    <symbol id="f-UZS" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#1eb53a"/><text x="20" y="28" text-anchor="middle" font-size="20" font-weight="800" fill="#fff" font-family="system-ui">₾</text></symbol>
+    <symbol id="f-KGS" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#e8112d"/><text x="20" y="26" text-anchor="middle" font-size="14" font-weight="800" fill="#ffef00" font-family="system-ui">сом</text></symbol>
+    <symbol id="f-TJS" viewBox="0 0 40 40"><rect width="40" height="13" fill="#cc0000"/><rect y="13" width="40" height="14" fill="#fff"/><rect y="27" width="40" height="13" fill="#006a4e"/><text x="20" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#cc0000" font-family="system-ui">SM</text></symbol>
+    <symbol id="f-AMD" viewBox="0 0 40 40"><rect width="40" height="13" fill="#d90012"/><rect y="13" width="40" height="14" fill="#0033a0"/><rect y="27" width="40" height="13" fill="#f2a800"/><text x="20" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="system-ui">֏</text></symbol>
+    <symbol id="f-AZN" viewBox="0 0 40 40"><rect width="40" height="13" fill="#0098c3"/><rect y="13" width="40" height="14" fill="#e00034"/><rect y="27" width="40" height="13" fill="#00ae65"/><text x="20" y="25" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" font-family="system-ui">₼</text></symbol>
+    <symbol id="f-GEL" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#fff"/><rect x="17" width="6" height="40" fill="#ff0000"/><rect y="17" width="40" height="6" fill="#ff0000"/><text x="20" y="33" text-anchor="middle" font-size="9" font-weight="800" fill="#222" font-family="system-ui">GEL</text></symbol>
+    <symbol id="f-MDL" viewBox="0 0 40 40"><rect width="13" height="40" fill="#003da5"/><rect x="13" width="14" height="40" fill="#ffd200"/><rect x="27" width="13" height="40" fill="#c00"/><text x="20" y="26" text-anchor="middle" font-size="13" font-weight="800" fill="#222" font-family="system-ui">L</text></symbol>
+    <symbol id="f-TMT" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="#00853e"/><text x="20" y="26" text-anchor="middle" font-size="14" font-weight="800" fill="#fff" font-family="system-ui">МTM</text></symbol>
+
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-arrow-dn" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 21h18M14 3l7 7-11 11H3v-7L14 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-deal" viewBox="0 0 24 24"><path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM17 12h.01M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v6a5 5 0 0 1-10 0V4zM7 7H4a2 2 0 0 0 0 4h3M17 7h3a2 2 0 0 1 0 4h-3M9 20h6M12 15v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3zM9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-refer" viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 11l3 3 3-3M20 14V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-support" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 0-18 0M5 19a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h2v6H5zM19 19a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2v6h2zM12 19a4 4 0 0 0 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" stroke-width="2" fill="none"/></symbol>
+    <symbol id="i-tx" viewBox="0 0 24 24"><path d="M4 7h12l-3-3M20 17H8l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2L12 3zM12 10v5M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  </defs>
+</svg>
+
 <section class="screen active" id="screen-deals">
   <header class="top-bar">
-    <div class="logo"><span class="logo-mark">P</span><span class="logo-text">Playerok</span></div>
+    <div class="logo"><svg class="logo-mark"><use href="#i-logo"/></svg><div><div class="logo-text">Playerok</div><div class="logo-sub">Гарант-сервис</div></div></div>
+    <button class="theme-toggle" id="theme-toggle"><svg><use href="#i-moon"/></svg></button>
   </header>
   <div class="content">
-    <h1 class="page-title">Мои сделки</h1>
-
-    <button class="big-cta" id="btn-create-deal">
-      <span class="big-cta-icon">＋</span><span>Создать сделку</span>
-    </button>
-
+    <div class="hero">
+      <div class="hero-title">Добро пожаловать 👋</div>
+      <div class="hero-sub">Безопасные внебиржевые сделки. Комиссия 1% · 24/7</div>
+    </div>
+    <button class="big-cta" id="btn-create-deal"><svg class="big-cta-icon"><use href="#i-plus"/></svg>Создать сделку</button>
     <div class="row-2">
-      <button class="tile" data-filter="active">
-        <div class="tile-icon">📂</div>
-        <div class="tile-title">Активные</div>
-        <div class="tile-sub" id="active-count">0 сделок</div>
-      </button>
-      <button class="tile" data-filter="history">
-        <div class="tile-icon">🕘</div>
-        <div class="tile-title">История</div>
-        <div class="tile-sub" id="history-count">0 сделок</div>
-      </button>
+      <button class="tile" data-filter="active"><div class="tile-icon-wrap blue"><svg><use href="#i-deal"/></svg></div><div class="tile-title">Активные</div><div class="tile-sub" id="active-count">0 сделок</div></button>
+      <button class="tile" data-filter="history"><div class="tile-icon-wrap purple"><svg><use href="#i-tx"/></svg></div><div class="tile-title">История</div><div class="tile-sub" id="history-count">0 сделок</div></button>
     </div>
-
-    <h2 class="section-title">Последние</h2>
-    <div id="deals-list" class="deals-list">
-      <div class="empty">
-        <div class="empty-emoji">📭</div>
-        <div class="empty-text">Нет активных сделок</div>
-        <div class="empty-sub">Создайте первую сделку, чтобы начать</div>
-      </div>
+    <div class="row-2">
+      <button class="tile" data-go="referral"><div class="tile-icon-wrap green"><svg><use href="#i-refer"/></svg></div><div class="tile-title">Реферальная</div><div class="tile-sub">Приглашай · зарабатывай</div></button>
+      <button class="tile" data-go="support"><div class="tile-icon-wrap orange"><svg><use href="#i-support"/></svg></div><div class="tile-title">Поддержка</div><div class="tile-sub">@PlayerokGiftsRelayer</div></button>
     </div>
+    <h2 class="section-title">Последние сделки</h2>
+    <div id="deals-list" class="deals-list"><div class="empty"><div class="empty-emoji">📭</div><div class="empty-text">Нет активных сделок</div><div class="empty-sub">Создайте первую сделку, чтобы начать</div></div></div>
   </div>
 </section>
 
-<!-- ================= КОШЕЛЬКИ ================= -->
 <section class="screen" id="screen-wallets">
-  <header class="top-bar"><div class="logo"><span class="logo-mark">P</span><span class="logo-text">Кошельки</span></div></header>
+  <header class="top-bar"><div class="logo"><svg class="logo-mark"><use href="#i-logo"/></svg><div><div class="logo-text">Кошельки</div><div class="logo-sub">Реквизиты и баланс</div></div></div></header>
   <div class="content">
-    <div class="currency-tabs" id="currency-tabs">
-      <button class="ctab active" data-cur="RUB">RUB</button>
-      <button class="ctab" data-cur="USD">USD</button>
-      <button class="ctab" data-cur="EUR">EUR</button>
-      <button class="ctab" data-cur="UAH">UAH</button>
-      <button class="ctab" data-cur="KZT">KZT</button>
-    </div>
-
+    <div class="currency-tabs" id="currency-tabs"></div>
     <div class="wallet-card">
-      <div class="wallet-card-label">Баланс</div>
+      <div class="wallet-card-label">Доступный баланс</div>
       <div class="wallet-card-amount"><span id="wallet-amount">0.00</span> <span id="wallet-cur">RUB</span></div>
+      <div class="wallet-card-unit" id="wallet-unit">Руб</div>
       <div class="wallet-card-glow"></div>
+      <svg class="wallet-card-bg"><use href="#i-logo"/></svg>
     </div>
-
     <div class="card-block">
       <div class="card-block-row">
-        <div class="card-block-text">
-          <div class="card-block-title">Банковская карта для <span id="card-cur">RUB</span></div>
-          <div class="card-block-sub" id="card-number">Не указана</div>
-        </div>
-        <button class="icon-btn" id="btn-edit-card">✏️</button>
+        <div class="card-block-text"><div class="card-block-title">Реквизиты для <span id="card-cur">RUB</span></div><div class="card-block-sub" id="card-number">Не указаны</div></div>
+        <button class="icon-btn" id="btn-edit-card"><svg><use href="#i-edit"/></svg></button>
       </div>
     </div>
-
     <div class="row-2">
-      <button class="action-btn" id="btn-topup"><span class="action-icon">⬇</span>Пополнение</button>
-      <button class="action-btn" id="btn-withdraw"><span class="action-icon">⬆</span>Вывести</button>
+      <button class="action-btn green" id="btn-topup"><svg class="action-icon"><use href="#i-arrow-dn"/></svg>Пополнить</button>
+      <button class="action-btn" id="btn-withdraw"><svg class="action-icon"><use href="#i-arrow-up"/></svg>Вывести</button>
     </div>
-
-    <h2 class="section-title">Последние операции</h2>
-    <div id="wallet-ops" class="deals-list">
-      <div class="empty"><div class="empty-emoji">💳</div><div class="empty-text">Операций пока нет</div></div>
-    </div>
+    <div class="info-line"><svg><use href="#i-shield"/></svg><span>Мин. вывод: <b id="min-withdraw">500</b> RUB · Нужно <b>3</b> сделки</span></div>
+    <h2 class="section-title">Операции</h2>
+    <div id="wallet-ops" class="deals-list"><div class="empty"><div class="empty-emoji">💳</div><div class="empty-text">Операций пока нет</div></div></div>
   </div>
 </section>
 
-<!-- ================= ЛИДЕРЫ ================= -->
 <section class="screen" id="screen-leaders">
-  <header class="top-bar"><div class="logo"><span class="logo-mark">P</span><span class="logo-text">Лидеры</span></div></header>
+  <header class="top-bar"><div class="logo"><svg class="logo-mark"><use href="#i-logo"/></svg><div><div class="logo-text">Лидеры</div><div class="logo-sub">Топ трейдеров</div></div></div></header>
   <div class="content">
-    <div class="leader-tabs">
-      <button class="ltab active" data-period="day">День</button>
-      <button class="ltab" data-period="week">Неделя</button>
-      <button class="ltab" data-period="month">Месяц</button>
-      <button class="ltab" data-period="all">Всё</button>
-    </div>
-    <div class="podium">
-      <div class="podium-slot p2"><div class="avatar">🥈</div><div class="podium-name">—</div><div class="podium-amt">0 TON</div></div>
-      <div class="podium-slot p1"><div class="crown">👑</div><div class="avatar">🥇</div><div class="podium-name">—</div><div class="podium-amt">0 TON</div></div>
-      <div class="podium-slot p3"><div class="avatar">🥉</div><div class="podium-name">—</div><div class="podium-amt">0 TON</div></div>
-    </div>
-    <div id="leaders-list" class="deals-list">
-      <div class="empty"><div class="empty-emoji">🏆</div><div class="empty-text">Лидеры появятся после первых сделок</div></div>
-    </div>
+    <div class="leader-tabs"><button class="ltab active" data-period="day">День</button><button class="ltab" data-period="week">Неделя</button><button class="ltab" data-period="month">Месяц</button><button class="ltab" data-period="all">Всё</button></div>
+    <div class="podium" id="podium"></div>
+    <div id="leaders-list" class="deals-list"></div>
   </div>
 </section>
 
-<!-- ================= ПРОФИЛЬ ================= -->
 <section class="screen" id="screen-profile">
-  <header class="top-bar">
-    <div class="logo"><span class="logo-mark">P</span><span class="logo-text">Профиль</span></div>
-    <button class="theme-toggle" id="theme-toggle">🌙</button>
-  </header>
+  <header class="top-bar"><div class="logo"><svg class="logo-mark"><use href="#i-logo"/></svg><div><div class="logo-text">Профиль</div><div class="logo-sub">И настройки</div></div></div><button class="theme-toggle" id="theme-toggle-2"><svg><use href="#i-moon"/></svg></button></header>
   <div class="content">
     <div class="profile-head">
       <div class="profile-avatar" id="profile-avatar">N</div>
       <div class="profile-name" id="profile-name">Гость</div>
       <div class="profile-uname" id="profile-uname">@guest</div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-v" id="pstat-deals">0</div><div class="pstat-k">сделок</div></div>
+        <div class="pstat"><div class="pstat-v" id="pstat-active">0</div><div class="pstat-k">активных</div></div>
+        <div class="pstat"><div class="pstat-v" id="pstat-fee">1%</div><div class="pstat-k">комиссия</div></div>
+      </div>
     </div>
-
     <div class="row-2">
-      <button class="action-btn" data-go="transactions"><span class="action-icon">📊</span>Транзакции</button>
-      <button class="action-btn" data-go="languages"><span class="action-icon">🌐</span>Языки</button>
+      <button class="action-btn" data-go="transactions"><svg class="action-icon"><use href="#i-tx"/></svg>Транзакции</button>
+      <button class="action-btn" data-go="languages"><svg class="action-icon"><use href="#i-globe"/></svg>Язык</button>
     </div>
-
-    <div class="section-row">
-      <h2 class="section-title">Балансы</h2>
-      <label class="toggle-mini"><input type="checkbox" id="hide-zero"><span>Скрыть нулевые</span></label>
+    <div class="section-row"><h2 class="section-title">Мои балансы</h2><label class="toggle-mini"><input type="checkbox" id="hide-zero"><span>Скрыть нулевые</span></label></div>
+    <div class="balances" id="balances"></div>
+    <div class="profile-actions">
+      <button class="link-row" data-go="rules"><svg class="lr-ico"><use href="#i-shield"/></svg><span>Правила и условия</span><span class="lr-arr">›</span></button>
+      <button class="link-row" data-go="referral"><svg class="lr-ico"><use href="#i-refer"/></svg><span>Пригласить друзей</span><span class="lr-arr">›</span></button>
+      <button class="link-row" data-go="support"><svg class="lr-ico"><use href="#i-support"/></svg><span>Поддержка</span><span class="lr-arr">›</span></button>
     </div>
-    <div class="balances" id="balances">
-      <div class="bal-row" data-cur="TON"><div class="bal-ico">💎</div><div class="bal-name">TON</div><div class="bal-amt">0.00</div></div>
-      <div class="bal-row" data-cur="USDT"><div class="bal-ico">🟢</div><div class="bal-name">USDT</div><div class="bal-amt">0.00</div></div>
-      <div class="bal-row" data-cur="STARS"><div class="bal-ico">⭐</div><div class="bal-name">STARS</div><div class="bal-amt">0</div></div>
-      <div class="bal-row" data-cur="USD"><div class="bal-ico">💵</div><div class="bal-name">USD</div><div class="bal-amt">0.00</div></div>
-    </div>
-
     <div class="footer-note">Playerok · Эскроу-сервис для безопасных сделок</div>
   </div>
 </section>
 
-<!-- ================= СОЗДАНИЕ СДЕЛКИ ================= -->
 <section class="screen" id="screen-create">
-  <header class="top-bar">
-    <button class="back-btn" data-back="deals">←</button>
-    <div class="top-title">Новая сделка</div>
-  </header>
+  <header class="top-bar"><button class="back-btn" data-back="deals"><svg><use href="#i-back"/></svg></button><div class="top-title">Новая сделка</div></header>
   <div class="content">
     <div class="stepper">
-      <div class="step active" data-step="1"><div class="step-dot">1</div><div class="step-label">Описание</div></div>
-      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">Цена</div></div>
-      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">Покупатель</div></div>
-      <div class="step" data-step="4"><div class="step-dot">4</div><div class="step-label">Готово</div></div>
+      <div class="step active" data-step="1"><div class="step-dot">1</div><div class="step-label">Метод</div></div>
+      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">Сумма</div></div>
+      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">Описание</div></div>
+      <div class="step" data-step="4"><div class="step-dot"><svg><use href="#i-check"/></svg></div><div class="step-label">Готово</div></div>
     </div>
-
-    <!-- Шаг 1 -->
     <div class="step-pane active" id="pane-1">
-      <label class="field-label">Описание товара</label>
-      <textarea id="f-desc" class="field" rows="5" placeholder="Например: NFT-подарок Plush Pepe #1, ссылка t.me/nft/PlushPepe-1"></textarea>
-      <div class="hint">
-        <b>Если это NFT-подарок:</b> Профиль Telegram → подарок → ⋯ → «Скопировать ссылку».<br>
-        Пример: <code>https://t.me/nft/PlushPepe-1</code>
+      <label class="field-label">Выберите метод получения оплаты</label>
+      <div class="method-list">
+        <button class="method-btn" data-method="ton"><svg class="method-ico"><use href="#c-TON"/></svg><div><div class="method-name">На TON-кошелёк</div><div class="method-sub">Криптовалюта, мгновенные переводы</div></div><span class="chev">›</span></button>
+        <button class="method-btn" data-method="card"><svg class="method-ico"><use href="#f-RUB"/></svg><div><div class="method-name">Карта / СБП</div><div class="method-sub">14 валют СНГ и др.</div></div><span class="chev">›</span></button>
+        <button class="method-btn" data-method="stars"><svg class="method-ico"><use href="#c-STARS"/></svg><div><div class="method-name">Звёзды Telegram</div><div class="method-sub">1 STAR ≈ 1.3 RUB</div></div><span class="chev">›</span></button>
       </div>
-      <button class="primary-btn" data-next="2">Далее</button>
     </div>
-
-    <!-- Шаг 2 -->
+    <div class="step-pane" id="pane-currency">
+      <label class="field-label">Выберите валюту карты</label>
+      <div class="hint">Это валюта, в которой покупатель увидит сумму к оплате</div>
+      <div class="currency-grid" id="currency-grid"></div>
+      <button class="ghost-btn" data-back-step="1">Назад</button>
+    </div>
     <div class="step-pane" id="pane-2">
-      <label class="field-label">Цена</label>
-      <div class="price-row">
-        <input type="number" id="f-price" class="field" placeholder="0" min="0" step="0.01">
-        <select id="f-currency" class="field select">
-          <option value="TON">TON</option>
-          <option value="USDT">USDT</option>
-          <option value="STARS">STARS</option>
-          <option value="RUB">RUB</option>
-          <option value="USD">USD</option>
-        </select>
-      </div>
-      <div class="hint">Комиссия эскроу: <b>3%</b>. Списывается с продавца после получения товара.</div>
-      <div class="row-2">
-        <button class="ghost-btn" data-prev="1">Назад</button>
-        <button class="primary-btn" data-next="3">Далее</button>
-      </div>
+      <label class="field-label">Сумма в <span id="f-unit-label">TON</span></label>
+      <input type="text" inputmode="decimal" id="f-price" class="field big-input" placeholder="0.00">
+      <div class="fee-hint">Комиссия 1%: <b id="f-fee">0.00</b> · К получению: <b id="f-net">0.00</b></div>
+      <div class="row-2"><button class="ghost-btn" data-back-step="1">Назад</button><button class="primary-btn" data-next="3">Далее</button></div>
     </div>
-
-    <!-- Шаг 3 -->
     <div class="step-pane" id="pane-3">
-      <label class="field-label">Покупатель (@username или ID)</label>
-      <input type="text" id="f-buyer" class="field" placeholder="@username">
-      <div class="hint">Покупатель получит ссылку на сделку и сможет оплатить её через Playerok-эскроу.</div>
-      <div class="row-2">
-        <button class="ghost-btn" data-prev="2">Назад</button>
-        <button class="primary-btn" id="btn-finalize">Создать сделку</button>
-      </div>
+      <label class="field-label">Описание сделки</label>
+      <textarea id="f-desc" class="field" rows="5" placeholder="Например: 10 Кепок и Пепе..."></textarea>
+      <div class="hint">Покупатель увидит этот текст при оплате. Для NFT-подарков — скопируйте ссылку <code>https://t.me/nft/PlushPepe-1</code></div>
+      <div class="row-2"><button class="ghost-btn" data-back-step="2">Назад</button><button class="primary-btn" id="btn-finalize">Создать сделку</button></div>
     </div>
-
-    <!-- Шаг 4 -->
     <div class="step-pane" id="pane-4">
       <div class="success">
         <div class="success-ico">✅</div>
         <div class="success-title">Сделка создана</div>
-        <div class="success-sub">Ссылка отправлена покупателю</div>
-        <div class="success-id" id="success-id">ID: —</div>
-        <button class="primary-btn" id="btn-share">Поделиться сделкой</button>
-        <button class="ghost-btn" data-back="deals">К списку сделок</button>
+        <div class="success-sub">Скопируйте ссылку и отправьте покупателю</div>
+        <div class="deal-link" id="deal-link">—</div>
+        <button class="primary-btn" id="btn-share"><svg class="action-icon"><use href="#i-share"/></svg>Поделиться сделкой</button>
+        <button class="ghost-btn" data-back="deals">К списку</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= СДЕЛКА (детально) ================= -->
 <section class="screen" id="screen-deal">
-  <header class="top-bar">
-    <button class="back-btn" data-back="deals">←</button>
-    <div class="top-title" id="deal-id">ID: —</div>
-  </header>
+  <header class="top-bar"><button class="back-btn" data-back="deals"><svg><use href="#i-back"/></svg></button><div class="top-title" id="deal-id">ID: —</div></header>
   <div class="content">
-    <div class="deal-amount-row">
-      <div class="deal-amount" id="deal-amount">0 TON</div>
-      <div class="deal-status-badge" id="deal-status-badge">Создана</div>
-    </div>
-
+    <div class="deal-amount-row"><div class="deal-amount" id="deal-amount">0 TON</div><div class="deal-status-badge" id="deal-status-badge">Создана</div></div>
     <div class="stepper deal-stepper" id="deal-stepper">
       <div class="step active" data-st="1"><div class="step-dot">1</div><div class="step-label">Создана</div></div>
       <div class="step" data-st="2"><div class="step-dot">2</div><div class="step-label">Покупатель</div></div>
       <div class="step" data-st="3"><div class="step-dot">3</div><div class="step-label">Оплачена</div></div>
-      <div class="step" data-st="4"><div class="step-dot">4</div><div class="step-label">В эскроу</div></div>
-      <div class="step" data-st="5"><div class="step-dot">5</div><div class="step-label">Получена</div></div>
+      <div class="step" data-st="4"><div class="step-dot">4</div><div class="step-label">Эскроу</div></div>
+      <div class="step" data-st="5"><div class="step-dot"><svg><use href="#i-check"/></svg></div><div class="step-label">Получена</div></div>
     </div>
-
     <div class="info-card">
       <div class="info-row"><span class="info-k">Товар</span><span class="info-v" id="deal-desc">—</span></div>
-      <div class="info-row"><span class="info-k">Продавец</span><span class="info-v" id="deal-seller">@вы</span></div>
-      <div class="info-row"><span class="info-k">Покупатель</span><span class="info-v" id="deal-buyer">—</span></div>
+      <div class="info-row"><span class="info-k">Метод</span><span class="info-v" id="deal-method">—</span></div>
+      <div class="info-row"><span class="info-k">Комиссия</span><span class="info-v" id="deal-fee">1%</span></div>
       <div class="info-row"><span class="info-k">Создана</span><span class="info-v" id="deal-created">—</span></div>
-      <div class="info-row"><span class="info-k">Таймер</span><span class="info-v" id="deal-timer">22 ч</span></div>
     </div>
-
-    <div class="safe-banner">🔒 Безопасно через Telegram · Playerok-эскроу</div>
-
-    <div class="row-2">
-      <button class="primary-btn" id="btn-share-deal">Поделиться сделкой</button>
-      <button class="danger-btn" id="btn-cancel-deal">Отменить</button>
-    </div>
+    <div class="safe-banner"><svg><use href="#i-shield"/></svg>Безопасно через Playerok-эскроу</div>
+    <div class="row-2"><button class="primary-btn" id="btn-share-deal"><svg class="action-icon"><use href="#i-share"/></svg>Поделиться</button><button class="danger-btn" id="btn-cancel-deal">Отменить</button></div>
   </div>
 </section>
 
-<!-- ================= БЕЗОПАСНОСТЬ ================= -->
 <section class="screen" id="screen-safety">
-  <header class="top-bar">
-    <button class="back-btn" data-back="deals">←</button>
-    <div class="top-title">Безопасность сделки</div>
-  </header>
+  <header class="top-bar"><button class="back-btn" data-back="deals"><svg><use href="#i-back"/></svg></button><div class="top-title">Безопасность</div></header>
   <div class="content">
-    <div class="warn-box">
-      <div class="warn-ico">⚠️</div>
-      <div class="warn-title">Внимательно!</div>
-      <div class="warn-text">
-        Передавайте NFT-подарок <b>ТОЛЬКО</b> на аккаунт<br>
-        <span class="warn-handle">@PlayerokGiftsRelayer</span><br><br>
-        Любая передача на другие аккаунты <b>не защищена</b> эскроу и приведёт к потере средств и товара.
-      </div>
-    </div>
-
-    <ul class="checks">
-      <li>✅ Адресат — официальный Relayer Playerok</li>
-      <li>✅ Подарок остаётся в эскроу до подтверждения покупателем</li>
-      <li>✅ Возврат — автоматически при отмене сделки в течение 24 ч</li>
-    </ul>
-
-    <button class="primary-btn" id="btn-safety-confirm" disabled>
-      <span id="safety-text">Прочитайте — 4с</span>
-    </button>
+    <div class="warn-box"><svg class="warn-ico"><use href="#i-warn"/></svg><div class="warn-title">Внимание!</div><div class="warn-text">Передавайте NFT-подарок <b>ТОЛЬКО</b> на аккаунт<br><span class="warn-handle">@PlayerokGiftsRelayer</span><br><br>Любая передача на другой аккаунт <b>не защищена</b>.</div></div>
+    <ul class="checks"><li><svg><use href="#i-check"/></svg>Официальный Relayer Playerok</li><li><svg><use href="#i-check"/></svg>Эскроу до подтверждения</li><li><svg><use href="#i-check"/></svg>Автовозврат в 24ч</li></ul>
+    <button class="primary-btn" id="btn-safety-confirm" disabled><span id="safety-text">Прочитайте — 4с</span></button>
   </div>
 </section>
 
-<!-- ================= МОДАЛКА (пополнение/вывод/карта) ================= -->
-<div class="modal-back" id="modal-back">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">Заголовок</div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-actions">
-      <button class="ghost-btn" id="modal-cancel">Отмена</button>
-      <button class="primary-btn" id="modal-ok">OK</button>
+<section class="screen" id="screen-rules">
+  <header class="top-bar"><button class="back-btn" data-back="profile"><svg><use href="#i-back"/></svg></button><div class="top-title">Правила</div></header>
+  <div class="content rules">
+    <h2>📜 Гарант-сервис Playerok</h2>
+    <p><i>Используя сервис, вы автоматически соглашаетесь с этими правилами.</i></p>
+    <h3>🚫 Запрещено</h3>
+    <ul><li>Казино, букмекерские конторы, ставки</li><li>Рефаунды, мошенничество, вымогательство</li><li>Сделки, нарушающие законы РФ/СНГ</li><li>Обман участников</li><li>Украденные карты/аккаунты</li></ul>
+    <h3>⚡ Наказания</h3>
+    <ul><li>1-2 нарушения: Предупреждение + 10% комиссия</li><li>Повторное: блокировка</li><li>Тяжёлые: бан + заморозка</li></ul>
+    <h3>⚖️ Арбитраж</h3>
+    <p>Средства в холд · рассмотрение 24ч · неявка = проигрыш.</p>
+    <h3>🔒 Комиссия</h3>
+    <p>Комиссия <b>1%</b> · Мин. вывод <b>500 RUB</b> · <b>3 сделки</b> для вывода.</p>
+  </div>
+</section>
+
+<section class="screen" id="screen-lang">
+  <header class="top-bar"><button class="back-btn" data-back="profile"><svg><use href="#i-back"/></svg></button><div class="top-title">Язык / Language</div></header>
+  <div class="content">
+    <div class="lang-list">
+      <button class="lang-btn" data-lang="ru"><span class="lang-flag">🇷🇺</span><span>Русский</span><svg class="lang-ck"><use href="#i-check"/></svg></button>
+      <button class="lang-btn" data-lang="en"><span class="lang-flag">🇬🇧</span><span>English</span><svg class="lang-ck"><use href="#i-check"/></svg></button>
+      <button class="lang-btn" data-lang="ar"><span class="lang-flag">🇸🇦</span><span>العربية</span><svg class="lang-ck"><use href="#i-check"/></svg></button>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ================= ТОСТ ================= -->
+<div class="modal-back" id="modal-back"><div class="modal"><div class="modal-title" id="modal-title">Заголовок</div><div class="modal-body" id="modal-body"></div><div class="modal-actions"><button class="ghost-btn" id="modal-cancel">Отмена</button><button class="primary-btn" id="modal-ok">OK</button></div></div></div>
 <div class="toast" id="toast"></div>
 
-<!-- ================= НИЖНЕЕ МЕНЮ ================= -->
 <nav class="bottom-nav">
-  <button class="nav-btn active" data-tab="deals"><span class="nav-ico">💼</span><span>Сделки</span></button>
-  <button class="nav-btn" data-tab="wallets"><span class="nav-ico">💳</span><span>Кошельки</span></button>
-  <button class="nav-btn" data-tab="leaders"><span class="nav-ico">🏆</span><span>Лидеры</span></button>
-  <button class="nav-btn" data-tab="profile"><span class="nav-ico">👤</span><span>Профиль</span></button>
+  <button class="nav-btn active" data-tab="deals"><svg class="nav-ico"><use href="#i-deal"/></svg><span>Сделки</span></button>
+  <button class="nav-btn" data-tab="wallets"><svg class="nav-ico"><use href="#i-wallet"/></svg><span>Кошельки</span></button>
+  <button class="nav-btn" data-tab="leaders"><svg class="nav-ico"><use href="#i-trophy"/></svg><span>Лидеры</span></button>
+  <button class="nav-btn" data-tab="profile"><svg class="nav-ico"><use href="#i-user"/></svg><span>Профиль</span></button>
 </nav>
 
 <script src="app.js"></script>
