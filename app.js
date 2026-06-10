@@ -1,388 +1,411 @@
-// PLAYEROK — Mini App. Синхронизировано с ботом (script2.py)
-const tg = window.Telegram?.WebApp;
-try{ tg?.ready(); tg?.expand(); }catch(e){}
+/* ===================== Playerok Mini App ===================== */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+try { tg && tg.ready(); tg && tg.expand(); } catch(e){}
 
-const FEE_PERCENT = 1;
-const MIN_WITHDRAWAL_RUB = 500;
-const MIN_DEALS = 3;
-const STAR_TO_RUB = 1.3;
-const SUPPORT_HANDLE = "@PlayerokGiftsRelayer";
-const BOT_USERNAME = "PlayerokSDelka_bot";
+/* ---------- State ---------- */
+const LS_KEY = 'playerok_state_v1';
+const defaultState = () => ({
+  theme: 'light',
+  deals: [],                // {id, desc, price, currency, buyer, status, createdAt}
+  wallets: { RUB:0, USD:0, EUR:0, UAH:0, KZT:0 },
+  cards:   { RUB:'', USD:'', EUR:'', UAH:'', KZT:'' },
+  balances:{ TON:0, USDT:0, STARS:0, USD:0 },
+  ops: [],                  // wallet operations
+  hideZero: false,
+  language: 'ru',
+});
+let state = (() => {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return defaultState();
+    return { ...defaultState(), ...JSON.parse(raw) };
+  } catch { return defaultState(); }
+})();
+const save = () => localStorage.setItem(LS_KEY, JSON.stringify(state));
 
-const FIAT = [
-  {code:"RUB", unit:"Руб",         name:"Российский рубль",   icon:"f-RUB"},
-  {code:"KZT", unit:"Тенге",       name:"Казахстанский тенге",icon:"f-KZT"},
-  {code:"BYN", unit:"Бел. руб",    name:"Белорусский рубль",  icon:"f-BYN"},
-  {code:"UZS", unit:"Сум",         name:"Узбекский сум",      icon:"f-UZS"},
-  {code:"UAH", unit:"Грн",         name:"Украинская гривна",  icon:"f-UAH"},
-  {code:"AMD", unit:"Драм",        name:"Армянский драм",     icon:"f-AMD"},
-  {code:"KGS", unit:"Сом",         name:"Киргизский сом",     icon:"f-KGS"},
-  {code:"AZN", unit:"Манат",       name:"Азерб. манат",       icon:"f-AZN"},
-  {code:"EUR", unit:"Евро",        name:"Евро",               icon:"f-EUR"},
-  {code:"GEL", unit:"Лари",        name:"Грузинский лари",    icon:"f-GEL"},
-  {code:"MDL", unit:"Лей",         name:"Молдавский лей",     icon:"f-MDL"},
-  {code:"TJS", unit:"Сомони",      name:"Тадж. сомони",       icon:"f-TJS"},
-  {code:"TMT", unit:"Манат (ТМ)",  name:"Туркм. манат",       icon:"f-TMT"},
-  {code:"USD", unit:"Долл. США",   name:"Доллар США",         icon:"f-USD"},
-];
-const CRYPTO = [
-  {code:"TON",   unit:"TON",    name:"Toncoin",         icon:"c-TON"},
-  {code:"STARS", unit:"Звёзд",  name:"Звёзды Telegram", icon:"c-STARS"},
-];
-const CRYPTO_EXTRA = [
-  {code:"USDT", unit:"USDT", name:"Tether USDT", icon:"c-USDT"},
-  {code:"BTC",  unit:"BTC",  name:"Bitcoin",     icon:"c-BTC"},
-  {code:"ETH",  unit:"ETH",  name:"Ethereum",    icon:"c-ETH"},
-  {code:"SOL",  unit:"SOL",  name:"Solana",      icon:"c-SOL"},
-  {code:"BNB",  unit:"BNB",  name:"BNB",         icon:"c-BNB"},
-  {code:"NOT",  unit:"NOT",  name:"Notcoin",     icon:"c-NOT"},
-  {code:"DOGE", unit:"DOGE", name:"Dogecoin",    icon:"c-DOGE"},
-  {code:"TRX",  unit:"TRX",  name:"TRON",        icon:"c-TRX"},
-];
-const ALL = [...CRYPTO, ...CRYPTO_EXTRA, ...FIAT];
-const byCode = c => ALL.find(x=>x.code===c);
-const isCrypto = c => ["BTC","ETH","TON","SOL","BNB"].includes(c);
+/* ---------- Helpers ---------- */
+const $  = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+const fmt = (n, dp=2) => Number(n||0).toLocaleString('ru-RU', { minimumFractionDigits:dp, maximumFractionDigits:dp });
+const fmtInt = n => Number(n||0).toLocaleString('ru-RU');
+const nowISO = () => new Date().toISOString();
+const genId = () => 'PLR-' + Math.random().toString(36).slice(2,7).toUpperCase() + Math.random().toString(36).slice(2,5).toUpperCase();
 
-const LS = "playerok_state_v3";
-function defaults(){
-  const balances = {}; ALL.forEach(c=>balances[c.code]=0);
-  return {theme:"light",lang:"ru",hideZero:true,user:{name:"Гость",uname:"guest",id:0},activeCur:"RUB",cards:{},wallets:{TON:""},balances,dealsCount:0,deals:[],ops:[],draft:{step:1,method:null,currency:"TON",price:"",desc:""}};
-}
-let S; try{ S = JSON.parse(localStorage.getItem(LS)) || defaults(); }catch(e){ S = defaults(); }
-for(const c of ALL) if(S.balances[c.code]==null) S.balances[c.code]=0;
-if(!S.draft) S.draft = defaults().draft;
-const save = ()=>localStorage.setItem(LS, JSON.stringify(S));
-
-try{ const u = tg?.initDataUnsafe?.user; if(u){ S.user.id=u.id; S.user.name=[u.first_name,u.last_name].filter(Boolean).join(" ")||"Гость"; S.user.uname=u.username||("id"+u.id); } }catch(e){}
-
-const $ = s=>document.querySelector(s);
-const $$ = s=>document.querySelectorAll(s);
-const fmt = (n,d=2)=>{ if(typeof n!=="number") n=parseFloat(n)||0; return n.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}); };
-const short = s => s ? (s.length>14 ? s.slice(0,6)+"…"+s.slice(-4) : s) : "";
-const rid = ()=>"PLR-"+Math.random().toString(36).slice(2,7).toUpperCase();
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove("show"),1800); }
-function haptic(t){ try{ tg?.HapticFeedback?.impactOccurred(t||"light"); }catch(e){} }
-function modal(opts){
-  const {title,body,okText="OK",cancelText="Отмена",hideCancel=false} = opts||{};
-  return new Promise(res=>{
-    $("#modal-title").textContent=title;
-    if(typeof body==="string") $("#modal-body").innerHTML=body; else { $("#modal-body").innerHTML=""; $("#modal-body").append(body); }
-    $("#modal-ok").textContent=okText; $("#modal-cancel").textContent=cancelText;
-    $("#modal-cancel").style.display=hideCancel?"none":"";
-    $("#modal-back").classList.add("show");
-    const ok=()=>{cleanup();res(true)}, cn=()=>{cleanup();res(false)};
-    function cleanup(){ $("#modal-back").classList.remove("show"); $("#modal-ok").removeEventListener("click",ok); $("#modal-cancel").removeEventListener("click",cn); }
-    $("#modal-ok").addEventListener("click",ok,{once:true});
-    $("#modal-cancel").addEventListener("click",cn,{once:true});
-  });
-}
-async function prompt2(title,placeholder,initial){
-  placeholder=placeholder||""; initial=initial||"";
-  const wrap=document.createElement("div");
-  const input=document.createElement("input");
-  input.id="_pp"; input.placeholder=placeholder; input.value=initial; input.className="field"; input.style.marginTop="8px";
-  wrap.appendChild(input);
-  const ok=await modal({title,body:wrap,okText:"Сохранить"});
-  if(!ok) return null;
-  return document.getElementById("_pp")?.value?.trim()||"";
-}
-function shareLink(url,text){
-  const u="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);
-  if(tg?.openTelegramLink) tg.openTelegramLink(u); else window.open(u,"_blank");
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 1800);
+  try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch{}
 }
 
-function go(tab){
-  $$(".screen").forEach(s=>s.classList.remove("active"));
-  const m = {deals:"#screen-deals",wallets:"#screen-wallets",leaders:"#screen-leaders",profile:"#screen-profile",create:"#screen-create",deal:"#screen-deal",safety:"#screen-safety",rules:"#screen-rules",lang:"#screen-lang"};
-  const el = document.querySelector(m[tab]||"#screen-deals");
-  if(el) el.classList.add("active");
-  $$(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
-  window.scrollTo(0,0); haptic("light");
+/* ---------- Навигация ---------- */
+let currentTab = 'deals';
+function showScreen(name){
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  $('#screen-' + name).classList.add('active');
+  window.scrollTo({top:0});
 }
-$$(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.tab)));
-$$("[data-back]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.back)));
-$$("[data-go]").forEach(b=>b.addEventListener("click",e=>{
-  const t=e.currentTarget.dataset.go;
-  if(t==="support"){ const url="https://t.me/PlayerokGiftsRelayer"; if(tg?.openTelegramLink) tg.openTelegramLink(url); else window.open(url,"_blank"); return; }
-  if(t==="referral"){ shareRef(); return; }
-  if(t==="transactions"){ go("wallets"); return; }
-  if(t==="languages"){ go("lang"); return; }
-  if(t==="rules"){ go("rules"); return; }
-}));
-$$("[data-filter]").forEach(b=>b.addEventListener("click",()=>renderDeals(b.dataset.filter)));
+function switchTab(name){
+  currentTab = name;
+  $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  showScreen(name);
+  if (name === 'deals') renderDeals();
+  if (name === 'wallets') renderWallets();
+  if (name === 'leaders') renderLeaders();
+  if (name === 'profile') renderProfile();
+}
+$$('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+$$('[data-back]').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.back)));
 
+/* ---------- Тема ---------- */
 function applyTheme(){
-  document.body.dataset.theme=S.theme;
-  const ic = S.theme==="dark"?"#i-sun":"#i-moon";
-  $$(".theme-toggle svg use").forEach(u=>u.setAttribute("href",ic));
-  try{ tg?.setHeaderColor && tg.setHeaderColor(S.theme==="dark"?"#0a0e17":"#f4f6fb"); }catch(e){}
+  document.body.dataset.theme = state.theme;
+  $('#theme-toggle').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+  try { tg && tg.setHeaderColor && tg.setHeaderColor(state.theme === 'dark' ? '#0c1018' : '#f4f6fb'); } catch{}
 }
-function toggleTheme(){ S.theme = S.theme==="dark"?"light":"dark"; save(); applyTheme(); haptic("light"); }
-$("#theme-toggle")?.addEventListener("click",toggleTheme);
-$("#theme-toggle-2")?.addEventListener("click",toggleTheme);
-$$(".lang-btn").forEach(b=>b.addEventListener("click",()=>{ S.lang=b.dataset.lang; save(); renderLang(); toast("Язык изменён"); haptic("medium"); }));
-function renderLang(){ $$(".lang-btn").forEach(b=>b.classList.toggle("active",b.dataset.lang===S.lang)); }
+$('#theme-toggle').addEventListener('click', () => {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  save(); applyTheme();
+});
 
-function renderProfile(){
-  $("#profile-name").textContent=S.user.name;
-  $("#profile-uname").textContent="@"+S.user.uname;
-  $("#profile-avatar").textContent=(S.user.name[0]||"P").toUpperCase();
-  $("#pstat-deals").textContent=S.dealsCount;
-  $("#pstat-active").textContent=S.deals.filter(d=>!["done","canceled"].includes(d.status)).length;
-}
-function renderBalances(){
-  const order=[...CRYPTO,...CRYPTO_EXTRA,...FIAT];
-  const wrap=$("#balances"); wrap.innerHTML="";
-  for(const c of order){
-    const amt=S.balances[c.code]||0;
-    if(S.hideZero && amt===0) continue;
-    const row=document.createElement("div"); row.className="bal-row";
-    const d=isCrypto(c.code)?4:2;
-    row.innerHTML='<svg class="bal-ico"><use href="#'+c.icon+'"/></svg>'+
-      '<div><div class="bal-name">'+c.name+'</div><div class="bal-unit">'+c.unit+'</div></div>'+
-      '<div><div class="bal-amt">'+fmt(amt,d)+'</div><div class="bal-amt-sub">'+c.code+'</div></div>';
-    wrap.appendChild(row);
-  }
-  if(!wrap.children.length) wrap.innerHTML='<div class="empty"><div class="empty-emoji">💰</div><div class="empty-text">Нет средств</div><div class="empty-sub">Совершите первую сделку</div></div>';
-}
-$("#hide-zero")?.addEventListener("change",e=>{ S.hideZero=e.target.checked; save(); renderBalances(); });
-
-function renderCurrencyTabs(){
-  const tabs=$("#currency-tabs"); tabs.innerHTML="";
-  const list=[{code:"TON",icon:"c-TON"},{code:"STARS",icon:"c-STARS"},...FIAT];
-  list.forEach(c=>{
-    const b=document.createElement("button"); b.className="ctab"+(c.code===S.activeCur?" active":"");
-    b.innerHTML='<svg><use href="#'+c.icon+'"/></svg> '+c.code;
-    b.addEventListener("click",()=>{ S.activeCur=c.code; save(); renderWallet(); haptic("light"); });
-    tabs.appendChild(b);
-  });
-}
-function renderWallet(){
-  renderCurrencyTabs();
-  const cur = byCode(S.activeCur)||byCode("RUB");
-  const amt = S.balances[cur.code]||0;
-  $("#wallet-amount").textContent=fmt(amt,isCrypto(cur.code)?4:2);
-  $("#wallet-cur").textContent=cur.code;
-  $("#wallet-unit").textContent=cur.unit;
-  $("#card-cur").textContent=cur.code;
-  if(cur.code==="TON") $("#card-number").textContent = S.wallets.TON?short(S.wallets.TON):"Не указан";
-  else if(cur.code==="STARS") $("#card-number").textContent="Автоматически через Telegram";
-  else $("#card-number").textContent = S.cards[cur.code]?short(S.cards[cur.code]):"Не указана";
-  const wrap=$("#wallet-ops"); wrap.innerHTML="";
-  const ops=S.ops.filter(o=>o.currency===cur.code).slice(0,20);
-  if(!ops.length){ wrap.innerHTML='<div class="empty"><div class="empty-emoji">💳</div><div class="empty-text">Операций пока нет</div></div>'; return; }
-  for(const o of ops){
-    const sign=o.type==="in"?"+":"−";
-    const cls=o.type==="in"?"s-done":"s-canceled";
-    const el=document.createElement("div"); el.className="deal-item";
-    el.innerHTML='<div><div class="di-title">'+o.label+'</div><div class="di-sub">'+new Date(o.ts).toLocaleString("ru-RU")+'</div></div>'+
-      '<div style="text-align:right"><div class="di-amount">'+sign+fmt(o.amount)+' '+o.currency+'</div><span class="di-status '+cls+'">'+(o.type==="in"?"Пополнение":"Вывод")+'</span></div>';
-    wrap.appendChild(el);
+/* ---------- Telegram user ---------- */
+function applyUser(){
+  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if (u){
+    const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.username || 'Гость';
+    const uname = u.username ? '@'+u.username : 'id'+u.id;
+    $('#profile-name').textContent = name;
+    $('#profile-uname').textContent = uname;
+    $('#profile-avatar').textContent = (name[0]||'P').toUpperCase();
   }
 }
-$("#btn-edit-card")?.addEventListener("click",async()=>{
-  const cur=byCode(S.activeCur);
-  if(cur.code==="TON"){ const v=await prompt2("TON-кошелёк","UQ...",S.wallets.TON||""); if(v!==null){ S.wallets.TON=v; save(); renderWallet(); toast("Кошелёк сохранён"); } }
-  else if(cur.code==="STARS") toast("Звёзды приходят автоматически");
-  else { const v=await prompt2("Карта/СБП для "+cur.code,"Номер карты или телефон",S.cards[cur.code]||""); if(v!==null){ S.cards[cur.code]=v; save(); renderWallet(); toast("Сохранено"); } }
-});
-$("#btn-topup")?.addEventListener("click",async()=>{
-  const cur=byCode(S.activeCur);
-  const v=await prompt2("Пополнение "+cur.code,"Сумма"); const num=parseFloat((v||"").replace(",",".")); if(!num||num<=0) return;
-  S.balances[cur.code]=(S.balances[cur.code]||0)+num;
-  S.ops.unshift({type:"in",currency:cur.code,amount:num,label:"Пополнение "+cur.code,ts:Date.now()});
-  save(); renderWallet(); renderBalances(); toast("Баланс пополнен"); haptic("medium");
-});
-$("#btn-withdraw")?.addEventListener("click",async()=>{
-  const cur=byCode(S.activeCur);
-  if(S.dealsCount<MIN_DEALS){ await modal({title:"Вывод недоступен",body:"Для вывода нужно не менее <b>"+MIN_DEALS+"</b> успешных сделок.<br>Сейчас у вас — "+S.dealsCount+".",hideCancel:true}); return; }
-  if(cur.code==="RUB" && (S.balances.RUB||0)<MIN_WITHDRAWAL_RUB){ await modal({title:"Мин. сумма",body:"Минимальный вывод — <b>"+MIN_WITHDRAWAL_RUB+" RUB</b>.",hideCancel:true}); return; }
-  const v=await prompt2("Вывод "+cur.code,"Сумма"); const num=parseFloat((v||"").replace(",",".")); if(!num||num<=0) return;
-  if(num>(S.balances[cur.code]||0)){ toast("Недостаточно средств"); return; }
-  S.balances[cur.code]-=num;
-  S.ops.unshift({type:"out",currency:cur.code,amount:num,label:"Вывод "+cur.code,ts:Date.now()});
-  save(); renderWallet(); renderBalances(); toast("Заявка на вывод принята"); haptic("medium");
-});
 
-function statusLabel(s){ return ({created:"Создана",paid:"Оплачена",escrow:"Эскроу",done:"Завершена",canceled:"Отменена"})[s]||s; }
-function methodLabel(m){ return ({ton:"TON-кошелёк",card:"Карта / СБП",stars:"Звёзды Telegram"})[m]||m; }
-function renderDeals(filter){
-  filter=filter||"active";
-  const wrap=$("#deals-list");
-  const list = S.deals.filter(d => filter==="history"?["done","canceled"].includes(d.status):!["done","canceled"].includes(d.status));
-  $("#active-count").textContent = S.deals.filter(d=>!["done","canceled"].includes(d.status)).length+" сделок";
-  $("#history-count").textContent = S.deals.filter(d=>["done","canceled"].includes(d.status)).length+" сделок";
-  if(!list.length){
-    const emoji=filter==="history"?"📜":"📭";
-    const text=filter==="history"?"История пуста":"Нет активных сделок";
-    const sub=filter==="history"?"":"Создайте первую сделку";
-    wrap.innerHTML='<div class="empty"><div class="empty-emoji">'+emoji+'</div><div class="empty-text">'+text+'</div><div class="empty-sub">'+sub+'</div></div>';
+/* ===================== СДЕЛКИ ===================== */
+const STATUS_LABEL = {
+  created: 'Создана',
+  buyer:   'Ожидает покупателя',
+  paid:    'Оплачена',
+  escrow:  'В эскроу',
+  done:    'Получена',
+  canceled:'Отменена',
+};
+const STATUS_STEP = { created:1, buyer:2, paid:3, escrow:4, done:5, canceled:0 };
+
+function renderDeals(){
+  const active = state.deals.filter(d => !['done','canceled'].includes(d.status));
+  const history = state.deals.filter(d => ['done','canceled'].includes(d.status));
+  $('#active-count').textContent = active.length + ' сделок';
+  $('#history-count').textContent = history.length + ' сделок';
+
+  const list = $('#deals-list');
+  if (!state.deals.length){
+    list.innerHTML = `<div class="empty"><div class="empty-emoji">📭</div><div class="empty-text">Нет активных сделок</div><div class="empty-sub">Создайте первую сделку, чтобы начать</div></div>`;
     return;
   }
-  wrap.innerHTML="";
-  list.slice(0,25).forEach(d=>{
-    const item=document.createElement("div"); item.className="deal-item";
-    const desc=(d.desc||"Без описания").slice(0,60);
-    item.innerHTML='<div><div class="di-title">'+desc+'</div><div class="di-sub">'+d.id+' · '+new Date(d.created).toLocaleDateString("ru-RU")+'</div></div>'+
-      '<div style="text-align:right"><div class="di-amount">'+fmt(d.amount)+' '+d.currency+'</div><span class="di-status s-'+d.status+'">'+statusLabel(d.status)+'</span></div>';
-    item.addEventListener("click",()=>openDeal(d.id));
-    wrap.appendChild(item);
-  });
+  const items = state.deals.slice().reverse().slice(0, 10).map(d => `
+    <div class="deal-item" data-deal="${d.id}">
+      <div class="deal-item-main">
+        <div class="di-title">${escapeHtml(d.desc || d.id)}</div>
+        <div class="di-sub">${escapeHtml(d.buyer || '—')} · ${new Date(d.createdAt).toLocaleDateString('ru-RU')}</div>
+      </div>
+      <div class="deal-item-right">
+        <div class="di-amount">${fmt(d.price)} ${d.currency}</div>
+        <div class="di-status s-${d.status}">${STATUS_LABEL[d.status]||d.status}</div>
+      </div>
+    </div>`).join('');
+  list.innerHTML = items;
+  $$('#deals-list .deal-item').forEach(el => el.addEventListener('click', () => openDeal(el.dataset.deal)));
 }
 
-$("#btn-create-deal")?.addEventListener("click",()=>{ S.draft=defaults().draft; save(); go("create"); paintCreate(); });
-function setStep(n){
-  S.draft.step=n; save();
-  $$("#screen-create .step").forEach(s=>{
-    const v=s.dataset.step;
-    s.classList.toggle("active",v===String(n));
-    s.classList.toggle("done",(n!=="currency")&&(+v<+n));
-  });
-  $$("#screen-create .step-pane").forEach(p=>p.classList.remove("active"));
-  if(n==="currency") document.querySelector("#pane-currency").classList.add("active");
-  else document.querySelector("#pane-"+n)?.classList.add("active");
-}
-function paintCreate(){
-  const grid=$("#currency-grid"); grid.innerHTML="";
-  FIAT.forEach(c=>{
-    const b=document.createElement("button"); b.className="cur-card";
-    b.innerHTML='<svg><use href="#'+c.icon+'"/></svg><div><div class="cur-card-name">'+c.code+'</div><div class="cur-card-unit">'+c.unit+'</div></div>';
-    b.addEventListener("click",()=>{ S.draft.currency=c.code; save(); $("#f-unit-label").textContent=c.code; setStep(2); haptic("light"); });
-    grid.appendChild(b);
-  });
-  setStep(1);
-  $("#f-price").value=""; $("#f-desc").value=""; updateFee();
-}
-$$(".method-btn").forEach(b=>b.addEventListener("click",()=>{
-  const m=b.dataset.method; S.draft.method=m;
-  if(m==="ton"){ S.draft.currency="TON"; $("#f-unit-label").textContent="TON"; setStep(2); }
-  else if(m==="stars"){ S.draft.currency="STARS"; $("#f-unit-label").textContent="Звёзд"; setStep(2); }
-  else setStep("currency");
-  save(); updateFee(); haptic("medium");
+$('#btn-create-deal').addEventListener('click', () => openCreate());
+$$('.tile').forEach(t => t.addEventListener('click', () => {
+  toast(t.dataset.filter === 'active' ? 'Активные сделки' : 'История сделок');
 }));
-$$("[data-back-step]").forEach(b=>b.addEventListener("click",()=>setStep(+b.dataset.backStep)));
-$$("[data-next]").forEach(b=>b.addEventListener("click",()=>{
-  const n=+b.dataset.next;
-  if(n===3){ const p=parseFloat(($("#f-price").value||"").replace(",",".")); if(!p||p<=0){ toast("Введите сумму"); return; } S.draft.price=p; save(); }
-  setStep(n);
-}));
-function updateFee(){
-  const p=parseFloat(($("#f-price").value||"0").replace(",","."))||0;
-  const fee=p*FEE_PERCENT/100, net=p-fee;
-  const d=isCrypto(S.draft.currency)?4:2;
-  $("#f-fee").textContent=fmt(fee,d);
-  $("#f-net").textContent=fmt(net,d);
+
+/* ---------- Создание ---------- */
+let draft = { desc:'', price:0, currency:'TON', buyer:'' };
+function openCreate(){
+  draft = { desc:'', price:0, currency:'TON', buyer:'' };
+  $('#f-desc').value=''; $('#f-price').value=''; $('#f-buyer').value=''; $('#f-currency').value='TON';
+  gotoStep(1);
+  showScreen('create');
+  showSafetyOnce();
 }
-$("#f-price")?.addEventListener("input",updateFee);
-
-$("#btn-finalize")?.addEventListener("click",()=>{
-  const price=parseFloat(($("#f-price").value||"").replace(",","."));
-  const desc=$("#f-desc").value.trim();
-  if(!price||price<=0){ toast("Введите сумму"); setStep(2); return; }
-  const id=rid();
-  const d={id,method:S.draft.method,currency:S.draft.currency,amount:price,desc,status:"created",created:Date.now(),buyer:""};
-  S.deals.unshift(d); S.dealsCount=(S.dealsCount||0)+1; save();
-  const link="https://t.me/"+BOT_USERNAME+"?start="+id;
-  $("#deal-link").textContent=link;
-  setStep(4); toast("Сделка создана"); haptic("medium");
-  renderDeals("active"); renderProfile();
-});
-$("#btn-share")?.addEventListener("click",()=>{
-  const d=S.deals[0]; if(!d) return;
-  const link="https://t.me/"+BOT_USERNAME+"?start="+d.id;
-  const text="🤝 Playerok гарант-сделка\n"+(d.desc||"")+"\nСумма: "+fmt(d.amount)+" "+d.currency;
-  shareLink(link,text);
-});
-
-function openDeal(id){
-  const d=S.deals.find(x=>x.id===id); if(!d) return;
-  window._currentDeal=id;
-  $("#deal-id").textContent="ID: "+id;
-  $("#deal-amount").textContent=fmt(d.amount)+" "+d.currency;
-  $("#deal-status-badge").textContent=statusLabel(d.status);
-  $("#deal-desc").textContent=d.desc||"—";
-  $("#deal-method").textContent=methodLabel(d.method);
-  $("#deal-fee").textContent=FEE_PERCENT+"% · "+fmt(d.amount*FEE_PERCENT/100)+" "+d.currency;
-  $("#deal-created").textContent=new Date(d.created).toLocaleString("ru-RU");
-  const stMap={created:1,paid:3,escrow:4,done:5,canceled:1};
-  const cur=stMap[d.status]||1;
-  $$("#deal-stepper .step").forEach(s=>{ const v=+s.dataset.st; s.classList.toggle("active",v===cur); s.classList.toggle("done",v<cur); });
-  go("deal");
+function gotoStep(n){
+  $$('#screen-create .step').forEach(s => {
+    const step = +s.dataset.step;
+    s.classList.toggle('active', step === n);
+    s.classList.toggle('done', step < n);
+  });
+  $$('#screen-create .step-pane').forEach(p => p.classList.remove('active'));
+  $('#pane-' + n).classList.add('active');
 }
-$("#btn-share-deal")?.addEventListener("click",()=>{
-  const id=window._currentDeal; if(!id) return;
-  const d=S.deals.find(x=>x.id===id); if(!d) return;
-  const link="https://t.me/"+BOT_USERNAME+"?start="+id;
-  const text="🔒 Playerok · "+(d.desc||"Сделка")+"\nСумма: "+fmt(d.amount)+" "+d.currency;
-  shareLink(link,text);
-});
-$("#btn-cancel-deal")?.addEventListener("click",async()=>{
-  const id=window._currentDeal; const d=S.deals.find(x=>x.id===id); if(!d) return;
-  const ok=await modal({title:"Отменить сделку?",body:"Действие нельзя отменить.",okText:"Отменить"});
-  if(!ok) return;
-  d.status="canceled"; save(); toast("Сделка отменена"); renderDeals("active"); go("deals");
-});
-
-$$(".ltab").forEach(b=>b.addEventListener("click",()=>{ $$(".ltab").forEach(x=>x.classList.remove("active")); b.classList.add("active"); renderLeaders(b.dataset.period); }));
-function renderLeaders(period){
-  period=period||"day";
-  const mul=({day:1,week:5,month:18,all:80}[period])||1;
-  const seed=[
-    {name:"Алексей К.",u:"alex_k",amt:148*mul,deals:7*mul},
-    {name:"Марина С.",u:"marina_s",amt:121*mul,deals:5*mul},
-    {name:"Дмитрий Р.",u:"dima_r",amt:96*mul,deals:4*mul},
-    {name:"Ирина Л.",u:"ira_l",amt:73*mul,deals:3*mul},
-    {name:"Никита П.",u:"nikita_p",amt:58*mul,deals:3*mul},
-    {name:"Олег Т.",u:"oleg_t",amt:42*mul,deals:2*mul},
-    {name:"Светлана Б.",u:"sveta_b",amt:33*mul,deals:2*mul},
-  ];
-  if(S.dealsCount>0){
-    const myTotal=(S.balances.RUB||0)/1000+(S.balances.TON||0)*0.35+S.dealsCount*8;
-    seed.push({name:S.user.name,u:S.user.uname,amt:Math.max(1,Math.round(myTotal)),deals:S.dealsCount,me:true});
-    seed.sort((a,b)=>b.amt-a.amt);
+$$('[data-next]').forEach(b => b.addEventListener('click', () => {
+  const next = +b.dataset.next;
+  if (next === 2){
+    const v = $('#f-desc').value.trim();
+    if (v.length < 3) return toast('Опишите товар');
+    draft.desc = v;
   }
-  const podium=$("#podium"); podium.innerHTML="";
-  const top3=seed.slice(0,3); const order=[top3[1],top3[0],top3[2]].filter(Boolean); const ranks=[2,1,3];
-  order.forEach((p,i)=>{
-    if(!p) return;
-    const slot=document.createElement("div"); slot.className="podium-slot p"+ranks[i];
-    const crown=ranks[i]===1?'<div class="crown">👑</div>':"";
-    slot.innerHTML=crown+'<div class="podium-rank">'+ranks[i]+'</div><div class="podium-avatar">'+(p.name[0]||"?").toUpperCase()+'</div><div class="podium-name">'+p.name+(p.me?" · вы":"")+'</div><div class="podium-amt">'+fmt(p.amt*1000,0)+' ₽</div>';
-    podium.appendChild(slot);
+  if (next === 3){
+    const p = parseFloat($('#f-price').value);
+    if (!p || p<=0) return toast('Укажите цену');
+    draft.price = p; draft.currency = $('#f-currency').value;
+  }
+  gotoStep(next);
+}));
+$$('[data-prev]').forEach(b => b.addEventListener('click', () => gotoStep(+b.dataset.prev)));
+
+$('#btn-finalize').addEventListener('click', () => {
+  const b = $('#f-buyer').value.trim();
+  if (!b) return toast('Укажите покупателя');
+  draft.buyer = b.startsWith('@') ? b : '@' + b.replace(/^https?:\/\/t\.me\//,'');
+  const deal = {
+    id: genId(),
+    desc: draft.desc,
+    price: draft.price,
+    currency: draft.currency,
+    buyer: draft.buyer,
+    status: 'created',
+    createdAt: nowISO(),
+  };
+  state.deals.push(deal);
+  save();
+  $('#success-id').textContent = 'ID: ' + deal.id;
+  gotoStep(4);
+  try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success'); } catch{}
+});
+
+$('#btn-share').addEventListener('click', () => {
+  const id = $('#success-id').textContent.replace('ID: ','');
+  shareDeal(id);
+});
+
+/* ---------- Открыть сделку ---------- */
+function openDeal(id){
+  const d = state.deals.find(x => x.id === id);
+  if (!d) return;
+  $('#deal-id').textContent = 'ID: ' + d.id;
+  $('#deal-amount').textContent = fmt(d.price) + ' ' + d.currency;
+  $('#deal-status-badge').textContent = STATUS_LABEL[d.status]||d.status;
+  $('#deal-desc').textContent = d.desc;
+  $('#deal-buyer').textContent = d.buyer || '—';
+  $('#deal-created').textContent = new Date(d.createdAt).toLocaleString('ru-RU');
+
+  const step = STATUS_STEP[d.status] || 1;
+  $$('#deal-stepper .step').forEach(s => {
+    const n = +s.dataset.st;
+    s.classList.toggle('active', n === step);
+    s.classList.toggle('done', n < step);
   });
-  const list=$("#leaders-list"); list.innerHTML="";
-  seed.slice(3,20).forEach((p,i)=>{
-    const el=document.createElement("div"); el.className="deal-item";
-    el.innerHTML='<div style="display:flex;align-items:center;gap:12px"><div class="podium-avatar" style="width:38px;height:38px;font-size:14px;margin:0;border:none">'+(p.name[0]||"?").toUpperCase()+'</div><div><div class="di-title">'+(i+4)+'. '+p.name+(p.me?" · вы":"")+'</div><div class="di-sub">@'+p.u+' · '+p.deals+' сделок</div></div></div><div class="di-amount">'+fmt(p.amt*1000,0)+' ₽</div>';
-    list.appendChild(el);
+  showScreen('deal');
+  $('#btn-share-deal').onclick = () => shareDeal(d.id);
+  $('#btn-cancel-deal').onclick = () => {
+    if (['done','canceled'].includes(d.status)) return toast('Сделка завершена');
+    askModal('Отменить сделку?', 'Средства вернутся в течение 24 ч', () => {
+      d.status = 'canceled'; save(); openDeal(d.id); toast('Сделка отменена');
+    });
+  };
+}
+
+function shareDeal(id){
+  const text = 'Моя эскроу-сделка на Playerok · ID: ' + id;
+  const url = 'https://t.me/share/url?url=' + encodeURIComponent('https://playerok.app/deal/' + id) + '&text=' + encodeURIComponent(text);
+  try {
+    if (tg && tg.openTelegramLink) { tg.openTelegramLink(url); return; }
+    if (tg && tg.openLink) { tg.openLink(url); return; }
+  } catch(e){}
+  try { navigator.clipboard.writeText(text); toast('Ссылка скопирована'); return; } catch(e){}
+  toast('Deal ID: ' + id);
+}
+
+/* ===================== КОШЕЛЬКИ ===================== */
+let currentCur = 'RUB';
+function renderWallets(){
+  $$('#currency-tabs .ctab').forEach(t => t.classList.toggle('active', t.dataset.cur === currentCur));
+  $('#wallet-amount').textContent = fmt(state.wallets[currentCur]);
+  $('#wallet-cur').textContent = currentCur;
+  $('#card-cur').textContent = currentCur;
+  $('#card-number').textContent = state.cards[currentCur] || 'Не указана';
+
+  const ops = state.ops.filter(o => o.cur === currentCur).slice(-10).reverse();
+  const list = $('#wallet-ops');
+  if (!ops.length){
+    list.innerHTML = `<div class="empty"><div class="empty-emoji">💳</div><div class="empty-text">Операций пока нет</div></div>`;
+  } else {
+    list.innerHTML = ops.map(o => `
+      <div class="deal-item">
+        <div class="deal-item-main">
+          <div class="di-title">${o.type === 'topup' ? 'Пополнение' : 'Вывод'}</div>
+          <div class="di-sub">${new Date(o.at).toLocaleString('ru-RU')}</div>
+        </div>
+        <div class="deal-item-right">
+          <div class="di-amount" style="color:${o.type==='topup'?'var(--ok)':'var(--danger)'}">${o.type==='topup'?'+':'−'}${fmt(o.amount)} ${o.cur}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+$$('#currency-tabs .ctab').forEach(t => t.addEventListener('click', () => {
+  currentCur = t.dataset.cur; renderWallets();
+}));
+$('#btn-edit-card').addEventListener('click', () => {
+  promptModal('Карта для ' + currentCur, 'Номер карты (16 цифр)', state.cards[currentCur]||'', v => {
+    const digits = v.replace(/\D/g,'');
+    if (digits.length < 12) return toast('Некорректный номер');
+    state.cards[currentCur] = digits.replace(/(.{4})/g,'$1 ').trim();
+    save(); renderWallets(); toast('Карта сохранена');
+  });
+});
+$('#btn-topup').addEventListener('click', () => {
+  promptModal('Пополнение ' + currentCur, 'Сумма', '', v => {
+    const n = parseFloat(v.replace(',','.'));
+    if (!n || n<=0) return toast('Неверная сумма');
+    state.wallets[currentCur] = (state.wallets[currentCur]||0) + n;
+    state.ops.push({ type:'topup', cur:currentCur, amount:n, at: nowISO() });
+    save(); renderWallets(); toast('Счёт пополнен');
+  });
+});
+$('#btn-withdraw').addEventListener('click', () => {
+  if (!state.cards[currentCur]) return toast('Сначала добавьте карту');
+  promptModal('Вывод ' + currentCur, 'Сумма', '', v => {
+    const n = parseFloat(v.replace(',','.'));
+    if (!n || n<=0) return toast('Неверная сумма');
+    if ((state.wallets[currentCur]||0) < n) return toast('Недостаточно средств');
+    state.wallets[currentCur] -= n;
+    state.ops.push({ type:'withdraw', cur:currentCur, amount:n, at: nowISO() });
+    save(); renderWallets(); toast('Вывод создан');
+  });
+});
+
+/* ===================== ЛИДЕРЫ ===================== */
+function renderLeaders(){
+  // Демо-лидеры + вы (по сделкам)
+  const myTotal = state.deals.filter(d => d.status==='done')
+    .filter(d => d.currency==='TON')
+    .reduce((s,d)=>s+d.price,0);
+  const me = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || { first_name:'Вы' };
+  const myName = me.first_name || 'Вы';
+  const demo = [
+    { name:'@playerok_top1', amt: 12450, ico:'👑' },
+    { name:'@nft_baron',     amt: 9820,  ico:'💫' },
+    { name:'@gift_master',   amt: 7311,  ico:'✨' },
+    { name:'@telegrambro',   amt: 4202,  ico:'🔥' },
+    { name:'@trader_xyz',    amt: 2890,  ico:'⚡' },
+    { name:myName,           amt: myTotal,ico:'🟢', me:true },
+  ].sort((a,b)=>b.amt-a.amt);
+
+  const pSlots = $$('.podium-slot');
+  [demo[1], demo[0], demo[2]].forEach((u,i)=>{
+    if (!u) return;
+    pSlots[i].querySelector('.podium-name').textContent = u.name;
+    pSlots[i].querySelector('.podium-amt').textContent = fmtInt(u.amt) + ' TON';
+  });
+
+  const list = $('#leaders-list');
+  list.innerHTML = demo.slice(3).map((u,i)=>`
+    <div class="deal-item" style="${u.me?'border-color:var(--primary)':''}">
+      <div class="deal-item-main">
+        <div class="di-title">${i+4}. ${u.ico} ${escapeHtml(u.name)}${u.me?' · вы':''}</div>
+        <div class="di-sub">всего сделок: ${Math.floor(u.amt/300)}</div>
+      </div>
+      <div class="deal-item-right">
+        <div class="di-amount">${fmtInt(u.amt)} TON</div>
+      </div>
+    </div>`).join('');
+}
+$$('.ltab').forEach(t => t.addEventListener('click', () => {
+  $$('.ltab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  renderLeaders();
+}));
+
+/* ===================== ПРОФИЛЬ ===================== */
+function renderProfile(){
+  $('#hide-zero').checked = state.hideZero;
+  $$('#balances .bal-row').forEach(row => {
+    const cur = row.dataset.cur;
+    const amt = state.balances[cur] || 0;
+    row.querySelector('.bal-amt').textContent = cur === 'STARS' ? fmtInt(amt) : fmt(amt);
+    row.style.display = (state.hideZero && amt === 0) ? 'none' : '';
   });
 }
+$('#hide-zero').addEventListener('change', e => { state.hideZero = e.target.checked; save(); renderProfile(); });
+$$('[data-go]').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.go === 'transactions') toast('Все транзакции в кошельках');
+  if (b.dataset.go === 'languages')   toast('Язык: Русский');
+}));
 
-function shareRef(){
-  const link="https://t.me/"+BOT_USERNAME+"?start=ref_"+(S.user.id||"0");
-  const text="Присоединяйся к Playerok — безопасные сделки 24/7. Комиссия 1%.";
-  shareLink(link,text);
+/* Долгое нажатие на TON — начислить (демо) */
+$$('#balances .bal-row').forEach(row => {
+  let t;
+  row.addEventListener('touchstart', () => t = setTimeout(()=>{
+    promptModal('Начислить ' + row.dataset.cur + ' (демо)', 'Сумма', '', v => {
+      const n = parseFloat(v.replace(',','.'));
+      if (!n) return;
+      state.balances[row.dataset.cur] = (state.balances[row.dataset.cur]||0) + n;
+      save(); renderProfile(); toast('Баланс обновлён');
+    });
+  }, 700));
+  row.addEventListener('touchend', () => clearTimeout(t));
+  row.addEventListener('touchcancel', () => clearTimeout(t));
+});
+
+/* ===================== БЕЗОПАСНОСТЬ ===================== */
+let safetyShown = false;
+function showSafetyOnce(){
+  if (safetyShown) return;
+  safetyShown = true;
+  showScreen('safety');
+  let s = 4;
+  const btn = $('#btn-safety-confirm');
+  const txt = $('#safety-text');
+  btn.disabled = true;
+  txt.textContent = 'Прочитайте — ' + s + 'с';
+  const tick = setInterval(() => {
+    s--;
+    if (s > 0){
+      txt.textContent = 'Прочитайте — ' + s + 'с';
+    } else {
+      clearInterval(tick);
+      btn.disabled = false;
+      txt.textContent = 'Я понял, продолжить';
+    }
+  }, 1000);
+  btn.onclick = () => showScreen('create');
 }
 
-let _safeTimer=null;
-function startSafetyTimer(){
-  let n=4; const b=$("#btn-safety-confirm"); const t=$("#safety-text");
-  b.disabled=true; t.textContent="Прочитайте — "+n+"с";
-  clearInterval(_safeTimer);
-  _safeTimer=setInterval(()=>{ n--; if(n<=0){ clearInterval(_safeTimer); b.disabled=false; t.textContent="Я прочитал и принимаю"; } else t.textContent="Прочитайте — "+n+"с"; },1000);
+/* ===================== МОДАЛКИ ===================== */
+function askModal(title, body, onOk){
+  $('#modal-title').textContent = title;
+  $('#modal-body').textContent = body;
+  $('#modal-back').classList.add('show');
+  $('#modal-ok').onclick = () => { $('#modal-back').classList.remove('show'); onOk && onOk(); };
+  $('#modal-cancel').onclick = () => $('#modal-back').classList.remove('show');
 }
-$("#btn-safety-confirm")?.addEventListener("click",()=>{ toast("Подтверждено"); go("deals"); });
-
-applyTheme(); renderLang();
-renderProfile(); renderBalances(); renderWallet(); renderDeals("active"); renderLeaders("day");
-if($("#hide-zero")) $("#hide-zero").checked = !!S.hideZero;
-$("#min-withdraw").textContent = MIN_WITHDRAWAL_RUB;
-
-if(!localStorage.getItem("playerok_welcomed")){
-  setTimeout(()=>{
-    modal({title:"👋 Добро пожаловать в Playerok",
-      body:"<b>Playerok</b> — специализированный сервис безопасных внебиржевых сделок.<br><br>✔️ Автоматический алгоритм исполнения<br>⚡ Скорость и автоматизация<br>💳 Удобный вывод средств<br>💰 Комиссия — <b>1%</b><br>🕘 Режим: 24/7<br>🛠️ Поддержка: <b>"+SUPPORT_HANDLE+"</b>",
-      okText:"Поехали",hideCancel:true});
-    localStorage.setItem("playerok_welcomed","1");
-  },350);
+function promptModal(title, placeholder, value, onOk){
+  $('#modal-title').textContent = title;
+  $('#modal-body').innerHTML = `<input id="_pm_inp" class="field" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value||'')}">`;
+  $('#modal-back').classList.add('show');
+  setTimeout(()=>$('#_pm_inp').focus(), 50);
+  $('#modal-ok').onclick = () => {
+    const v = $('#_pm_inp').value.trim();
+    $('#modal-back').classList.remove('show');
+    if (v) onOk && onOk(v);
+  };
+  $('#modal-cancel').onclick = () => $('#modal-back').classList.remove('show');
 }
+$('#modal-back').addEventListener('click', e => { if (e.target === $('#modal-back')) $('#modal-back').classList.remove('show'); });
+
+/* ===================== UTIL ===================== */
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ===================== INIT ===================== */
+applyTheme();
+applyUser();
+renderDeals();
+renderWallets();
+renderProfile();

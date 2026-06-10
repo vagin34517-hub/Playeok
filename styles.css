@@ -19,6 +19,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Ro
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea{font-family:inherit;font-size:15px;color:inherit}
 svg{flex-shrink:0}
+img{display:block}
 
 .screen{display:none;min-height:100vh}
 .screen.active{display:block}
@@ -26,7 +27,7 @@ svg{flex-shrink:0}
 .top-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(244,246,251,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 body[data-theme="dark"] .top-bar{background:rgba(10,14,23,.8)}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-mark{width:38px;height:38px;border-radius:11px;box-shadow:0 4px 14px rgba(10,132,255,.35)}
+.logo-mark{width:38px;height:38px;border-radius:11px;box-shadow:0 4px 14px rgba(10,132,255,.35);object-fit:cover;background:#fff}
 .logo-text{font-size:17px;font-weight:800;letter-spacing:-.2px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .logo-sub{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
 .top-title{font-size:17px;font-weight:700;flex:1;text-align:center}
@@ -80,7 +81,7 @@ body[data-theme="dark"] .top-bar{background:rgba(10,14,23,.8)}
 .currency-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;scrollbar-width:none}
 .currency-tabs::-webkit-scrollbar{display:none}
 .ctab{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;background:var(--card);font-size:13px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow);transition:all .15s}
-.ctab svg{width:18px;height:18px;border-radius:6px}
+.ctab svg{width:18px;height:18px;border-radius:50%}
 .ctab.active{background:var(--grad);color:#fff;box-shadow:0 6px 16px rgba(10,132,255,.3)}
 
 .wallet-card{position:relative;background:var(--grad);color:#fff;border-radius:22px;padding:22px;margin-bottom:14px;overflow:hidden;box-shadow:0 14px 36px rgba(10,132,255,.32)}
@@ -88,7 +89,7 @@ body[data-theme="dark"] .top-bar{background:rgba(10,14,23,.8)}
 .wallet-card-amount{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
 .wallet-card-unit{font-size:12px;opacity:.8;margin-top:6px;font-weight:500}
 .wallet-card-glow{position:absolute;bottom:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,.18) 0%,transparent 70%);pointer-events:none}
-.wallet-card-bg{position:absolute;right:-10px;top:-10px;width:120px;height:120px;opacity:.12}
+.wallet-card-bg{position:absolute;right:-14px;top:-14px;width:120px;height:120px;opacity:.2;border-radius:24px;object-fit:cover;pointer-events:none;filter:brightness(2)}
 
 .card-block{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
 .card-block-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -175,7 +176,7 @@ textarea.field{resize:vertical;min-height:100px;font-family:inherit}
 .method-list{display:flex;flex-direction:column;gap:10px}
 .method-btn{display:flex;align-items:center;gap:14px;padding:16px;background:var(--card);border-radius:16px;text-align:left;box-shadow:var(--shadow);transition:transform .12s,box-shadow .15s}
 .method-btn:active{transform:scale(.985)}
-.method-ico{width:40px;height:40px;border-radius:50%}
+.method-ico{width:42px;height:42px;border-radius:50%}
 .method-btn>div{flex:1}
 .method-name{font-size:15px;font-weight:700;margin-bottom:2px}
 .method-sub{font-size:12px;color:var(--muted)}
@@ -231,7 +232,7 @@ textarea.field{resize:vertical;min-height:100px;font-family:inherit}
 .lang-list{display:flex;flex-direction:column;gap:10px}
 .lang-btn{display:flex;align-items:center;gap:14px;padding:16px;background:var(--card);border-radius:14px;font-size:15px;font-weight:600;box-shadow:var(--shadow);text-align:left;border:1.5px solid transparent;transition:all .15s}
 .lang-btn.active{border-color:var(--primary)}
-.lang-flag{font-size:24px}
+.lang-flag{width:30px;height:30px;border-radius:50%;object-fit:cover}
 .lang-ck{width:18px;height:18px;color:var(--primary);margin-left:auto;opacity:0;transition:opacity .15s}
 .lang-btn.active .lang-ck{opacity:1}
 
