@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Playerok</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="light">
+
+<!-- ================= СДЕЛКИ (главная) ================= -->
+<section class="screen active" id="screen-deals">
+  <header class="top-bar">
+    <div class="logo"><span class="logo-mark">P</span><span class="logo-text">Playerok</span></div>
+  </header>
+  <div class="content">
+    <h1 class="page-title">Мои сделки</h1>
+
+    <button class="big-cta" id="btn-create-deal">
+      <span class="big-cta-icon">＋</span><span>Создать сделку</span>
+    </button>
+
+    <div class="row-2">
+      <button class="tile" data-filter="active">
+        <div class="tile-icon">📂</div>
+        <div class="tile-title">Активные</div>
+        <div class="tile-sub" id="active-count">0 сделок</div>
+      </button>
+      <button class="tile" data-filter="history">
+        <div class="tile-icon">🕘</div>
+        <div class="tile-title">История</div>
+        <div class="tile-sub" id="history-count">0 сделок</div>
+      </button>
+    </div>
+
+    <h2 class="section-title">Последние</h2>
+    <div id="deals-list" class="deals-list">
+      <div class="empty">
+        <div class="empty-emoji">📭</div>
+        <div class="empty-text">Нет активных сделок</div>
+        <div class="empty-sub">Создайте первую сделку, чтобы начать</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= КОШЕЛЬКИ ================= -->
+<section class="screen" id="screen-wallets">
+  <header class="top-bar"><div class="logo"><span class="logo-mark">P</span><span class="logo-text">Кошельки</span></div></header>
+  <div class="content">
+    <div class="currency-tabs" id="currency-tabs">
+      <button class="ctab active" data-cur="RUB">RUB</button>
+      <button class="ctab" data-cur="USD">USD</button>
+      <button class="ctab" data-cur="EUR">EUR</button>
+      <button class="ctab" data-cur="UAH">UAH</button>
+      <button class="ctab" data-cur="KZT">KZT</button>
+    </div>
+
+    <div class="wallet-card">
+      <div class="wallet-card-label">Баланс</div>
+      <div class="wallet-card-amount"><span id="wallet-amount">0.00</span> <span id="wallet-cur">RUB</span></div>
+      <div class="wallet-card-glow"></div>
+    </div>
+
+    <div class="card-block">
+      <div class="card-block-row">
+        <div class="card-block-text">
+          <div class="card-block-title">Банковская карта для <span id="card-cur">RUB</span></div>
+          <div class="card-block-sub" id="card-number">Не указана</div>
+        </div>
+        <button class="icon-btn" id="btn-edit-card">✏️</button>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <button class="action-btn" id="btn-topup"><span class="action-icon">⬇</span>Пополнение</button>
+      <button class="action-btn" id="btn-withdraw"><span class="action-icon">⬆</span>Вывести</button>
+    </div>
+
+    <h2 class="section-title">Последние операции</h2>
+    <div id="wallet-ops" class="deals-list">
+      <div class="empty"><div class="empty-emoji">💳</div><div class="empty-text">Операций пока нет</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ЛИДЕРЫ ================= -->
+<section class="screen" id="screen-leaders">
+  <header class="top-bar"><div class="logo"><span class="logo-mark">P</span><span class="logo-text">Лидеры</span></div></header>
+  <div class="content">
+    <div class="leader-tabs">
+      <button class="ltab active" data-period="day">День</button>
+      <button class="ltab" data-period="week">Неделя</button>
+      <button class="ltab" data-period="month">Месяц</button>
+      <button class="ltab" data-period="all">Всё</button>
+    </div>
+    <div class="podium">
+      <div class="podium-slot p2"><div class="avatar">🥈</div><div class="podium-name">—</div><div class="podium-amt">0 TON</div></div>
+      <div class="podium-slot p1"><div class="crown">👑</div><div class="avatar">🥇</div><div class="podium-name">—</div><div class="podium-amt">0 TON</div></div>
+      <div class="podium-slot p3"><div class="avatar">🥉</div><div class="podium-name">—</div><div class="podium-amt">0 TON</div></div>
+    </div>
+    <div id="leaders-list" class="deals-list">
+      <div class="empty"><div class="empty-emoji">🏆</div><div class="empty-text">Лидеры появятся после первых сделок</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ПРОФИЛЬ ================= -->
+<section class="screen" id="screen-profile">
+  <header class="top-bar">
+    <div class="logo"><span class="logo-mark">P</span><span class="logo-text">Профиль</span></div>
+    <button class="theme-toggle" id="theme-toggle">🌙</button>
+  </header>
+  <div class="content">
+    <div class="profile-head">
+      <div class="profile-avatar" id="profile-avatar">N</div>
+      <div class="profile-name" id="profile-name">Гость</div>
+      <div class="profile-uname" id="profile-uname">@guest</div>
+    </div>
+
+    <div class="row-2">
+      <button class="action-btn" data-go="transactions"><span class="action-icon">📊</span>Транзакции</button>
+      <button class="action-btn" data-go="languages"><span class="action-icon">🌐</span>Языки</button>
+    </div>
+
+    <div class="section-row">
+      <h2 class="section-title">Балансы</h2>
+      <label class="toggle-mini"><input type="checkbox" id="hide-zero"><span>Скрыть нулевые</span></label>
+    </div>
+    <div class="balances" id="balances">
+      <div class="bal-row" data-cur="TON"><div class="bal-ico">💎</div><div class="bal-name">TON</div><div class="bal-amt">0.00</div></div>
+      <div class="bal-row" data-cur="USDT"><div class="bal-ico">🟢</div><div class="bal-name">USDT</div><div class="bal-amt">0.00</div></div>
+      <div class="bal-row" data-cur="STARS"><div class="bal-ico">⭐</div><div class="bal-name">STARS</div><div class="bal-amt">0</div></div>
+      <div class="bal-row" data-cur="USD"><div class="bal-ico">💵</div><div class="bal-name">USD</div><div class="bal-amt">0.00</div></div>
+    </div>
+
+    <div class="footer-note">Playerok · Эскроу-сервис для безопасных сделок</div>
+  </div>
+</section>
+
+<!-- ================= СОЗДАНИЕ СДЕЛКИ ================= -->
+<section class="screen" id="screen-create">
+  <header class="top-bar">
+    <button class="back-btn" data-back="deals">←</button>
+    <div class="top-title">Новая сделка</div>
+  </header>
+  <div class="content">
+    <div class="stepper">
+      <div class="step active" data-step="1"><div class="step-dot">1</div><div class="step-label">Описание</div></div>
+      <div class="step" data-step="2"><div class="step-dot">2</div><div class="step-label">Цена</div></div>
+      <div class="step" data-step="3"><div class="step-dot">3</div><div class="step-label">Покупатель</div></div>
+      <div class="step" data-step="4"><div class="step-dot">4</div><div class="step-label">Готово</div></div>
+    </div>
+
+    <!-- Шаг 1 -->
+    <div class="step-pane active" id="pane-1">
+      <label class="field-label">Описание товара</label>
+      <textarea id="f-desc" class="field" rows="5" placeholder="Например: NFT-подарок Plush Pepe #1, ссылка t.me/nft/PlushPepe-1"></textarea>
+      <div class="hint">
+        <b>Если это NFT-подарок:</b> Профиль Telegram → подарок → ⋯ → «Скопировать ссылку».<br>
+        Пример: <code>https://t.me/nft/PlushPepe-1</code>
+      </div>
+      <button class="primary-btn" data-next="2">Далее</button>
+    </div>
+
+    <!-- Шаг 2 -->
+    <div class="step-pane" id="pane-2">
+      <label class="field-label">Цена</label>
+      <div class="price-row">
+        <input type="number" id="f-price" class="field" placeholder="0" min="0" step="0.01">
+        <select id="f-currency" class="field select">
+          <option value="TON">TON</option>
+          <option value="USDT">USDT</option>
+          <option value="STARS">STARS</option>
+          <option value="RUB">RUB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+      <div class="hint">Комиссия эскроу: <b>3%</b>. Списывается с продавца после получения товара.</div>
+      <div class="row-2">
+        <button class="ghost-btn" data-prev="1">Назад</button>
+        <button class="primary-btn" data-next="3">Далее</button>
+      </div>
+    </div>
+
+    <!-- Шаг 3 -->
+    <div class="step-pane" id="pane-3">
+      <label class="field-label">Покупатель (@username или ID)</label>
+      <input type="text" id="f-buyer" class="field" placeholder="@username">
+      <div class="hint">Покупатель получит ссылку на сделку и сможет оплатить её через Playerok-эскроу.</div>
+      <div class="row-2">
+        <button class="ghost-btn" data-prev="2">Назад</button>
+        <button class="primary-btn" id="btn-finalize">Создать сделку</button>
+      </div>
+    </div>
+
+    <!-- Шаг 4 -->
+    <div class="step-pane" id="pane-4">
+      <div class="success">
+        <div class="success-ico">✅</div>
+        <div class="success-title">Сделка создана</div>
+        <div class="success-sub">Ссылка отправлена покупателю</div>
+        <div class="success-id" id="success-id">ID: —</div>
+        <button class="primary-btn" id="btn-share">Поделиться сделкой</button>
+        <button class="ghost-btn" data-back="deals">К списку сделок</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= СДЕЛКА (детально) ================= -->
+<section class="screen" id="screen-deal">
+  <header class="top-bar">
+    <button class="back-btn" data-back="deals">←</button>
+    <div class="top-title" id="deal-id">ID: —</div>
+  </header>
+  <div class="content">
+    <div class="deal-amount-row">
+      <div class="deal-amount" id="deal-amount">0 TON</div>
+      <div class="deal-status-badge" id="deal-status-badge">Создана</div>
+    </div>
+
+    <div class="stepper deal-stepper" id="deal-stepper">
+      <div class="step active" data-st="1"><div class="step-dot">1</div><div class="step-label">Создана</div></div>
+      <div class="step" data-st="2"><div class="step-dot">2</div><div class="step-label">Покупатель</div></div>
+      <div class="step" data-st="3"><div class="step-dot">3</div><div class="step-label">Оплачена</div></div>
+      <div class="step" data-st="4"><div class="step-dot">4</div><div class="step-label">В эскроу</div></div>
+      <div class="step" data-st="5"><div class="step-dot">5</div><div class="step-label">Получена</div></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-row"><span class="info-k">Товар</span><span class="info-v" id="deal-desc">—</span></div>
+      <div class="info-row"><span class="info-k">Продавец</span><span class="info-v" id="deal-seller">@вы</span></div>
+      <div class="info-row"><span class="info-k">Покупатель</span><span class="info-v" id="deal-buyer">—</span></div>
+      <div class="info-row"><span class="info-k">Создана</span><span class="info-v" id="deal-created">—</span></div>
+      <div class="info-row"><span class="info-k">Таймер</span><span class="info-v" id="deal-timer">22 ч</span></div>
+    </div>
+
+    <div class="safe-banner">🔒 Безопасно через Telegram · Playerok-эскроу</div>
+
+    <div class="row-2">
+      <button class="primary-btn" id="btn-share-deal">Поделиться сделкой</button>
+      <button class="danger-btn" id="btn-cancel-deal">Отменить</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= БЕЗОПАСНОСТЬ ================= -->
+<section class="screen" id="screen-safety">
+  <header class="top-bar">
+    <button class="back-btn" data-back="deals">←</button>
+    <div class="top-title">Безопасность сделки</div>
+  </header>
+  <div class="content">
+    <div class="warn-box">
+      <div class="warn-ico">⚠️</div>
+      <div class="warn-title">Внимательно!</div>
+      <div class="warn-text">
+        Передавайте NFT-подарок <b>ТОЛЬКО</b> на аккаунт<br>
+        <span class="warn-handle">@PlayerokGiftsRelayer</span><br><br>
+        Любая передача на другие аккаунты <b>не защищена</b> эскроу и приведёт к потере средств и товара.
+      </div>
+    </div>
+
+    <ul class="checks">
+      <li>✅ Адресат — официальный Relayer Playerok</li>
+      <li>✅ Подарок остаётся в эскроу до подтверждения покупателем</li>
+      <li>✅ Возврат — автоматически при отмене сделки в течение 24 ч</li>
+    </ul>
+
+    <button class="primary-btn" id="btn-safety-confirm" disabled>
+      <span id="safety-text">Прочитайте — 4с</span>
+    </button>
+  </div>
+</section>
+
+<!-- ================= МОДАЛКА (пополнение/вывод/карта) ================= -->
+<div class="modal-back" id="modal-back">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Заголовок</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="modal-cancel">Отмена</button>
+      <button class="primary-btn" id="modal-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ТОСТ ================= -->
+<div class="toast" id="toast"></div>
+
+<!-- ================= НИЖНЕЕ МЕНЮ ================= -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="deals"><span class="nav-ico">💼</span><span>Сделки</span></button>
+  <button class="nav-btn" data-tab="wallets"><span class="nav-ico">💳</span><span>Кошельки</span></button>
+  <button class="nav-btn" data-tab="leaders"><span class="nav-ico">🏆</span><span>Лидеры</span></button>
+  <button class="nav-btn" data-tab="profile"><span class="nav-ico">👤</span><span>Профиль</span></button>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>
